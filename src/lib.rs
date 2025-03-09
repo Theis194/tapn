@@ -1,6 +1,5 @@
 pub mod petri;
 
 pub use petri::{
-    Invariant,
-    Place,
+    ArcType, InhibitorArc, InputArc, Invariant, OutputArc, Place, Transition, TransportArc,
 };
