@@ -1,6 +1,6 @@
 use crate::{Place, Transition};
 
-pub struct Tapn {
+pub struct Tapn<'a> {
     pub places: Vec<Place>,
-    pub transitions: Vec<Transition>,
+    pub transitions: Vec<Transition<'a>>,
 }

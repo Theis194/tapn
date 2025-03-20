@@ -1,3 +1,4 @@
+#[derive(Clone, Copy)]
 pub struct Invariant {
     condition: fn(token_age: f64) -> bool,
 }

@@ -1,13 +1,13 @@
-use super::Place;
+use super::{place, Place};
 
-pub enum ArcType {
-    Input(InputArc),
-    Transport(TransportArc),
-    Inhibitor(InhibitorArc),
+pub enum ArcType<'a> {
+    Input(InputArc<'a>),
+    Transport(TransportArc<'a>),
+    Inhibitor(InhibitorArc<'a>),
 }
 
-impl ArcType {
-    pub fn fire(&mut self) -> bool {
+impl<'a> ArcType<'a> {
+    pub fn fire(&mut self) -> Vec<f64> {
         match self {
             ArcType::Input(arc) => arc.fire(),
             ArcType::Transport(arc) =>arc.fire(),
@@ -16,54 +16,86 @@ impl ArcType {
     }
 }
 
-pub struct InputArc {
-    input: Place,
-    weight: usize,
+pub struct InputArc<'a> {
+    pub input: &'a mut Place,
+    pub weight: usize,
 }
 
-impl InputArc {
-    pub fn fire(&mut self) -> bool {
+impl<'a> InputArc<'a> {
+    pub fn fire(&mut self) -> Vec<f64> {
         if self.input.invariants_hold(self.weight) {
             self.input.remove_tokens(self.weight);
         }
         println!("Input arc fired");
-        true
+        vec![0.0; self.weight]
     }
 }
 
-pub struct TransportArc {
-    input: Place,
-    weight: usize,
+pub struct TransportArc<'a> {
+    pub input: &'a mut Place,
+    pub weight: usize,
 }
 
-impl TransportArc {
-    pub fn fire(&self) -> bool {
+impl<'a> TransportArc<'a> {
+    pub fn fire(&mut self) -> Vec<f64> {
+        let mut tokens: Vec<f64> = Vec::new();
+        if self.input.invariants_hold(self.weight) {
+            tokens = self.input.remove_tokens(self.weight);
+        }
         println!("Transport arc fired");
-        true
+        tokens
     }
 }
 
-pub struct InhibitorArc {
-    input: Place,
+pub struct InhibitorArc<'a> {
+    input: &'a mut Place,
     weight: usize,
     constraint: usize,
 }
 
-impl InhibitorArc {
-    pub fn fire(&self) -> bool {
+impl<'a> InhibitorArc<'a> {
+    pub fn fire(&mut self) -> Vec<f64> {
+        if self.input.invariants_hold(self.weight) {
+            self.input.remove_tokens(self.weight);
+        }
         println!("Inhibitor arc fired");
-        true
+        vec![0.0; self.weight]
     }
 }
 
-pub struct OutputArc {
-    output: Place,
-    weight: usize,
+pub enum OutputArc<'a> {
+    TransportArc(TransportOutputArc<'a>),
+    Regular(RegularOutputArc<'a>),
 }
 
-impl OutputArc {
-    pub fn fire(&self) -> bool {
-        println!("Output arc fired");
-        true
+pub struct TransportOutputArc<'a> {
+    pub output: &'a mut Place,
+    pub weight: usize,
+}
+
+impl<'a> TransportOutputArc<'a> {
+    pub fn fire(&mut self, tokens: &[f64]) -> bool {
+        if tokens.len() >= self.weight {
+            self.output.add_tokens(&tokens[..self.weight]);
+            true
+        } else {
+            false
+        }
+    }
+}
+
+pub struct RegularOutputArc<'a> {
+    pub output: &'a mut Place,
+    pub weight: usize,
+}
+
+impl<'a> RegularOutputArc<'a> {
+    pub fn fire(&mut self, tokens: &[f64]) -> bool {
+        if tokens.len() >= self.weight {
+            self.output.add_tokens(&vec![0.0; self.weight]); // Example: Generate new tokens
+            true
+        } else {
+            false
+        }
     }
 }

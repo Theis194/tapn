@@ -1,9 +1,10 @@
 use crate::Invariant;
 
+#[derive(Clone)]
 pub struct Place {
-    name: String,
-    tokens: Vec<f64>,
-    invariants: Vec<Invariant>,
+    pub name: String,
+    pub tokens: Vec<f64>,
+    pub invariants: Vec<Invariant>,
 }
 
 impl Place {
@@ -41,16 +42,20 @@ impl Place {
         valid_tokens_count >= n
     }
 
-    pub fn remove_tokens(&mut self, n: usize) -> bool {
+    pub fn remove_tokens(&mut self, n: usize) -> Vec<f64> {
+        let mut tokens: Vec<f64> = Vec::new();
         if self.tokens.len() > n {
             self.tokens.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
             for _ in 0..n {
-                self.tokens.pop();
+                tokens.push(self.tokens.pop().unwrap());
             }
-           return true;
         }
 
-        false
+        tokens
+    }
+
+    pub fn add_tokens(&mut self, tokens: &[f64]) {
+        self.tokens.extend_from_slice(tokens);
     }
 }
