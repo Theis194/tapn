@@ -36,11 +36,13 @@ fn main() {
     let input_arc = ArcType::Input(InputArc {
         input: &mut input_place1,
         weight: 2,
+        timing: [0.0, 10.0],
     });
 
     let transport_arc = ArcType::Transport(TransportArc {
         input: &mut input_place2,
         weight: 1,
+        timing: [0.0, 10.0],
     });
 
     let transport_output_arc = OutputArc::TransportArc(TransportOutputArc {
@@ -53,10 +55,10 @@ fn main() {
         weight: 2,
     });
 
-    let mut transition = Transition {
-        input_arcs: vec![input_arc, transport_arc],
-        output_arcs: vec![transport_output_arc, regular_output_arc],
-    };
+    let mut transition = Transition::new(
+        vec![input_arc, transport_arc],
+        vec![transport_output_arc, regular_output_arc],
+    );
 
     transition.fire();
 

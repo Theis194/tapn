@@ -42,10 +42,37 @@ impl Place {
         valid_tokens_count >= n
     }
 
+    pub fn tokens_hold(&self, n: usize, timing: &[f64; 2]) -> bool {
+        let min_age = &timing[0];
+        let max_age = &timing[1];
+
+        let mut holds = true;
+        let mut holds_count = 0;
+        let mut index = 0;
+        while holds_count < n {
+            let token = &self.tokens[index];
+            holds = if token >= min_age && token <= max_age {
+                true
+            } else {
+                return false;
+            };
+            if holds {
+                holds_count += 1;
+            }
+            index += 1;
+        }
+
+        if holds_count >= 2 {
+            return holds;
+        }
+        false
+    }
+
     pub fn remove_tokens(&mut self, n: usize) -> Vec<f64> {
         let mut tokens: Vec<f64> = Vec::new();
         if self.tokens.len() > n {
-            self.tokens.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            self.tokens
+                .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
             for _ in 0..n {
                 tokens.push(self.tokens.pop().unwrap());

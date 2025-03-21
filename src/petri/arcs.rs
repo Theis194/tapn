@@ -14,11 +14,20 @@ impl<'a> ArcType<'a> {
             ArcType::Inhibitor(arc) => arc.fire(),
         }
     }
+
+    pub fn can_fire(&self) -> bool {
+        match self {
+            ArcType::Input(arc) => arc.can_fire(),
+            ArcType::Transport(arc) =>arc.can_fire(),
+            ArcType::Inhibitor(arc) => arc.can_fire(),
+        }
+    }
 }
 
 pub struct InputArc<'a> {
     pub input: &'a mut Place,
     pub weight: usize,
+    pub timing: [f64; 2],
 }
 
 impl<'a> InputArc<'a> {
@@ -29,11 +38,19 @@ impl<'a> InputArc<'a> {
         println!("Input arc fired");
         vec![0.0; self.weight]
     }
+
+    pub fn can_fire(&self) -> bool {
+        if self.input.tokens_hold(self.weight, &self.timing) {
+            return self.input.invariants_hold(self.weight)
+        }
+        false
+    }
 }
 
 pub struct TransportArc<'a> {
     pub input: &'a mut Place,
     pub weight: usize,
+    pub timing: [f64; 2],
 }
 
 impl<'a> TransportArc<'a> {
@@ -45,12 +62,20 @@ impl<'a> TransportArc<'a> {
         println!("Transport arc fired");
         tokens
     }
+
+    pub fn can_fire(&self) -> bool {
+        if self.input.tokens_hold(self.weight, &self.timing) {
+            return self.input.invariants_hold(self.weight)
+        }
+        false
+    }
 }
 
 pub struct InhibitorArc<'a> {
-    input: &'a mut Place,
-    weight: usize,
-    constraint: usize,
+    pub input: &'a mut Place,
+    pub weight: usize,
+    pub constraint: usize,
+    pub timing: [f64; 2],
 }
 
 impl<'a> InhibitorArc<'a> {
@@ -60,6 +85,13 @@ impl<'a> InhibitorArc<'a> {
         }
         println!("Inhibitor arc fired");
         vec![0.0; self.weight]
+    }
+    
+    pub fn can_fire(&self) -> bool {
+        if self.input.tokens_hold(self.weight, &self.timing) {
+            return self.input.invariants_hold(self.weight)
+        }
+        false
     }
 }
 
