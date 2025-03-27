@@ -2,14 +2,16 @@ use crate::Invariant;
 
 #[derive(Clone)]
 pub struct Place {
+    pub id: usize,
     pub name: String,
     pub tokens: Vec<f64>,
     pub invariants: Vec<Invariant>,
 }
 
 impl Place {
-    pub fn new(name: String, tokens: Vec<f64>, invariants: Vec<Invariant>) -> Place {
+    pub fn new(id: usize, name: String, tokens: Vec<f64>, invariants: Vec<Invariant>) -> Place {
         Place {
+            id,
             name,
             tokens,
             invariants,

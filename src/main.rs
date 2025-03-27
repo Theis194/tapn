@@ -1,67 +1,54 @@
+use std::{cell::RefCell, rc::Rc};
+
 use tapn::{
-    ArcType, InputArc, Invariant, OutputArc, Place, RegularOutputArc, Transition, TransportArc,
-    TransportOutputArc,
+    observer::token_observers::TokenCoutObserver, petri::Distribution, ArcType, Comparison, InputArc, OutputArc, Place, RegularOutputArc, Tapn, Transition, TransportArc, TransportOutputArc
 };
 
 fn main() {
-    let place = Place::new(
-        String::from("test"),
-        vec![3.0, 0.0],
-        vec![Invariant::new(|age: f64| age < 3.0)],
-    );
+    let accumulated_time = Rc::new(RefCell::new(Place::new(
+        0,
+        "accumulated_time".to_string(),
+        vec![0.0],
+        vec![],
+    )));
+    let finished = Rc::new(RefCell::new(Place::new(
+        0,
+        "finished".to_string(),
+        vec![],
+        vec![],
+    )));
 
-    println!("{:?}", place.invariants_hold(1));
-
-    let mut input_place1 = Place::new(
-        String::from("test"),
-        vec![1.0, 2.0, 3.0],
-        vec![Invariant::new(|_| true)],
-    );
-    let mut input_place2 = Place::new(
-        String::from("test"),
-        vec![4.0, 5.0],
-        vec![Invariant::new(|_| true)],
-    );
-    let mut output_place1 = Place::new(
-        String::from("test"),
-        Vec::new(),
-        vec![Invariant::new(|_| true)],
-    );
-    let mut output_place2 = Place::new(
-        String::from("test"),
-        Vec::new(),
-        vec![Invariant::new(|_| true)],
-    );
-
-    let input_arc = ArcType::Input(InputArc {
-        input: &mut input_place1,
-        weight: 2,
-        timing: [0.0, 10.0],
-    });
-
-    let transport_arc = ArcType::Transport(TransportArc {
-        input: &mut input_place2,
+    let delay_input = ArcType::Transport(TransportArc {
+        input: Rc::clone(&accumulated_time),
         weight: 1,
-        timing: [0.0, 10.0],
+        timing: [0.0, 999.0],
     });
-
-    let transport_output_arc = OutputArc::TransportArc(TransportOutputArc {
-        output: &mut output_place1,
+    let delay_output = OutputArc::TransportArc(TransportOutputArc {
+        output: Rc::clone(&accumulated_time),
         weight: 1,
     });
 
-    let regular_output_arc = OutputArc::Regular(RegularOutputArc {
-        output: &mut output_place2,
-        weight: 2,
+    let delay = Transition::new(vec![delay_input], vec![delay_output], Distribution::Uniform);
+
+    let timeout_input = ArcType::Input(InputArc {
+        input: Rc::clone(&accumulated_time),
+        weight: 1,
+        timing: [1.0, 999.0],
+    });
+    let timeout_output = OutputArc::Regular(RegularOutputArc {
+        output: Rc::clone(&finished),
+        weight: 1,
     });
 
-    let mut transition = Transition::new(
-        vec![input_arc, transport_arc],
-        vec![transport_output_arc, regular_output_arc],
-    );
+    let timeout = Transition::new(vec![timeout_input], vec![timeout_output], Distribution::Constant);
 
-    transition.fire();
+    let observer = Box::new(TokenCoutObserver::new().monitor_place(1, 1, Comparison::Equal));
 
-    println!("Output place 1 tokens: {:?}", output_place1.tokens); // Should contain tokens from transport arc
-    println!("Output place 2 tokens: {:?}", output_place2.tokens); // Should contain new tokens
+    let mut euler = Tapn {
+        places: vec![accumulated_time, finished],
+        transitions: vec![delay, timeout],
+        observers: vec![observer],
+    };
+
+    euler.run();
 }

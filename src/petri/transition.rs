@@ -2,19 +2,19 @@ use super::{OutputArc, arcs::ArcType};
 use rand::Rng;
 use rand::distr::Uniform;
 
-pub struct Transition<'a> {
-    pub input_arcs: Vec<ArcType<'a>>,
-    pub output_arcs: Vec<OutputArc<'a>>,
-    pub distribution_function: fn() -> f64,
+pub struct Transition {
+    pub input_arcs: Vec<ArcType>,
+    pub output_arcs: Vec<OutputArc>,
+    pub distribution_function: Distribution,
     pub firing_time: f64,
 }
 
-impl<'a> Transition<'a> {
-    pub fn new(input_arcs: Vec<ArcType<'a>>, output_arcs: Vec<OutputArc<'a>>) -> Transition<'a> {
+impl Transition {
+    pub fn new(input_arcs: Vec<ArcType>, output_arcs: Vec<OutputArc>, distribution_function: Distribution) -> Transition {
         Transition {
             input_arcs,
             output_arcs,
-            distribution_function: (|| 0.0),
+            distribution_function,
             firing_time: 0.0,
         }
     }
@@ -69,7 +69,7 @@ impl<'a> Transition<'a> {
     }
 
     fn generate_firing_time(&mut self) {
-        self.firing_time = (self.distribution_function)();
+        self.firing_time = self.distribution_function.sample();
     }
 }
 

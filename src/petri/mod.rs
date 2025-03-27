@@ -8,5 +8,6 @@ pub use arcs::{
     ArcType, InhibitorArc, InputArc, OutputArc, RegularOutputArc, TransportArc, TransportOutputArc,
 };
 pub use invariant::Invariant;
+pub use net::Tapn;
 pub use place::Place;
-pub use transition::Transition;
+pub use transition::{Distribution, Transition};

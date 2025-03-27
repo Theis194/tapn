@@ -1,11 +1,24 @@
-use crate::{Place, Transition};
+use std::{cell::RefCell, rc::Rc};
 
-pub struct Tapn<'a> {
-    pub places: Vec<Place>,
-    pub transitions: Vec<Transition<'a>>,
+use crate::{Place, SimulationEvent, SimulationObserver, Transition};
+
+pub struct Tapn {
+    pub places: Vec<Rc<RefCell<Place>>>,
+    pub transitions: Vec<Transition>,
+    pub observers: Vec<Box<dyn SimulationObserver>>,
 }
 
-impl<'a> Tapn<'a> {
+impl Tapn {
+    pub fn add_observer(&mut self, observer: Box<dyn SimulationObserver>) {
+        self.observers.push(observer);
+    }
+
+    pub fn notify_observer(&mut self, event: SimulationEvent) {
+        for observer in &mut self.observers {
+            observer.on_step(&event);
+        }
+    }
+
     pub fn step(&mut self) -> bool {
         // Step 1: Determine the next transition to fire
         let mut next_transition_index: Option<usize> = None;
@@ -41,6 +54,20 @@ impl<'a> Tapn<'a> {
         }
     }
 
+    pub fn run(&mut self) {
+        while !self.should_continue() {
+            self.step();
+        }
+
+        for observer in &mut self.observers {
+            observer.on_completion();
+        }
+    }
+
+    pub fn should_continue(&mut self) -> bool {
+        self.observers.iter().any(|o| o.should_stop()) && self.step()
+    }
+
     fn delay(&mut self, delay: f64) {
         // Advance the simulation time by the delay
         // This can be tracked as a field in the Tapn struct if needed
@@ -48,7 +75,7 @@ impl<'a> Tapn<'a> {
 
     fn update_token_ages(&mut self, delay: f64) {
         for place in &mut self.places {
-            for token in &mut place.tokens {
+            for token in &mut place.borrow_mut().tokens {
                 *token += delay;
             }
         }
