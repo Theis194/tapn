@@ -28,7 +28,7 @@ fn main() {
         weight: 1,
     });
 
-    let delay = Transition::new(vec![delay_input], vec![delay_output], Distribution::Uniform);
+    let delay = Transition::new(vec![delay_input], vec![delay_output], Distribution::Uniform(0.0, 1.0));
 
     let timeout_input = ArcType::Input(InputArc {
         input: Rc::clone(&accumulated_time),
@@ -40,7 +40,7 @@ fn main() {
         weight: 1,
     });
 
-    let timeout = Transition::new(vec![timeout_input], vec![timeout_output], Distribution::Constant);
+    let timeout = Transition::new(vec![timeout_input], vec![timeout_output], Distribution::Constant(0.0));
 
     let observer = Box::new(TokenCoutObserver::new().monitor_place(1, 1, Comparison::Equal));
 

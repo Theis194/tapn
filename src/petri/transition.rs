@@ -74,20 +74,18 @@ impl Transition {
 }
 
 pub enum Distribution {
-    Constant,
-    Uniform,
+    Constant(f64),
+    Uniform(f64, f64),
 }
 
 impl Distribution {
     pub fn sample(&self) -> f64 {
         match self {
-            Distribution::Constant => 0.0,
-            Distribution::Uniform => {
+            Distribution::Constant(val) => *val,
+            Distribution::Uniform(min, max) => {
                 let mut rng = rand::rng();
-                let range = Uniform::new(0.0, 1.0).unwrap();
-                let random_number = rng.sample(range);
-
-                random_number
+                let range = Uniform::new(*min, *max).unwrap();
+                rng.sample(range)
             }
         }
     }
