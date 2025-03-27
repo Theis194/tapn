@@ -2,8 +2,10 @@ pub mod observer;
 pub mod petri;
 
 pub use petri::{
-    ArcType, InhibitorArc, InputArc, Invariant, OutputArc, Place, RegularOutputArc, Transition,
-    TransportArc, TransportOutputArc, Tapn
+    ArcType, InhibitorArc, InputArc, Invariant, OutputArc, Place, RegularOutputArc, Tapn,
+    Transition, TransportArc, TransportOutputArc, Distribution
 };
 
-pub use observer::{SimulationEvent, SimulationObserver, Comparison};
+pub use observer::{
+    Comparison, SimulationEvent, SimulationObserver, TokenAgeObserver, TokenCoutObserver,
+};

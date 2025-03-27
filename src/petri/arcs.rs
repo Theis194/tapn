@@ -34,22 +34,19 @@ pub struct InputArc {
 
 impl InputArc {
     pub fn fire(&mut self) -> Vec<f64> {
-        if self.input.borrow_mut().invariants_hold(self.weight) {
-            self.input.borrow_mut().remove_tokens(self.weight);
+        if self.can_fire() {
+            let removed = self.input.borrow_mut().remove_tokens(self.weight);
+            println!("Input arc fired, removed tokens: {:?}", removed);
+            // Input arcs create new 0-age tokens
+            vec![0.0; self.weight]
+        } else {
+            vec![]
         }
-        println!("Input arc fired");
-        vec![0.0; self.weight]
     }
 
     pub fn can_fire(&self) -> bool {
-        if self
-            .input
-            .borrow_mut()
-            .tokens_hold(self.weight, &self.timing)
-        {
-            return self.input.borrow_mut().invariants_hold(self.weight);
-        }
-        false
+        self.input.borrow().tokens_hold(self.weight, &self.timing) &&
+        self.input.borrow().invariants_hold(self.weight)
     }
 }
 
@@ -61,23 +58,18 @@ pub struct TransportArc {
 
 impl TransportArc {
     pub fn fire(&mut self) -> Vec<f64> {
-        let mut tokens: Vec<f64> = Vec::new();
-        if self.input.borrow_mut().invariants_hold(self.weight) {
-            tokens = self.input.borrow_mut().remove_tokens(self.weight);
+        if self.can_fire() {
+            let tokens = self.input.borrow_mut().remove_tokens(self.weight);
+            println!("Transport arc fired, transporting tokens: {:?}", tokens);
+            tokens
+        } else {
+            vec![]
         }
-        println!("Transport arc fired");
-        tokens
     }
 
     pub fn can_fire(&self) -> bool {
-        if self
-            .input
-            .borrow_mut()
-            .tokens_hold(self.weight, &self.timing)
-        {
-            return self.input.borrow_mut().invariants_hold(self.weight);
-        }
-        false
+        self.input.borrow().tokens_hold(self.weight, &self.timing) &&
+        self.input.borrow().invariants_hold(self.weight)
     }
 }
 
@@ -90,22 +82,15 @@ pub struct InhibitorArc {
 
 impl InhibitorArc {
     pub fn fire(&mut self) -> Vec<f64> {
-        if self.input.borrow_mut().invariants_hold(self.weight) {
-            self.input.borrow_mut().remove_tokens(self.weight);
-        }
-        println!("Inhibitor arc fired");
-        vec![0.0; self.weight]
+        // Inhibitor arcs don't actually consume tokens when firing
+        println!("Inhibitor arc fired (no tokens consumed)");
+        vec![]
     }
 
     pub fn can_fire(&self) -> bool {
-        if self
-            .input
-            .borrow_mut()
-            .tokens_hold(self.weight, &self.timing)
-        {
-            return self.input.borrow_mut().invariants_hold(self.weight);
-        }
-        false
+        // Inhibitor checks if place has LESS tokens than constraint
+        self.input.borrow().tokens.len() < self.constraint &&
+        self.input.borrow().invariants_hold(0) // Check invariants for existing tokens
     }
 }
 
@@ -122,6 +107,7 @@ pub struct TransportOutputArc {
 impl TransportOutputArc {
     pub fn fire(&mut self, tokens: &[f64]) -> bool {
         if tokens.len() >= self.weight {
+            // Transport arcs preserve the original token ages
             self.output.borrow_mut().add_tokens(&tokens[..self.weight]);
             true
         } else {
@@ -137,11 +123,9 @@ pub struct RegularOutputArc {
 
 impl RegularOutputArc {
     pub fn fire(&mut self, tokens: &[f64]) -> bool {
-        if tokens.len() >= self.weight {
-            self.output.borrow_mut().add_tokens(&vec![0.0; self.weight]); // Example: Generate new tokens
-            true
-        } else {
-            false
-        }
+        // Regular arcs create new 0-age tokens regardless of input
+        // (but we use the weight from the arc definition)
+        self.output.borrow_mut().add_tokens(&vec![0.0; self.weight]);
+        true
     }
 }

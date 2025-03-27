@@ -45,41 +45,33 @@ impl Place {
     }
 
     pub fn tokens_hold(&self, n: usize, timing: &[f64; 2]) -> bool {
-        let min_age = &timing[0];
-        let max_age = &timing[1];
+        let min_age = timing[0];
+        let max_age = timing[1];
 
-        let mut holds = true;
-        let mut holds_count = 0;
-        let mut index = 0;
-        while holds_count < n {
-            let token = &self.tokens[index];
-            holds = if token >= min_age && token <= max_age {
-                true
-            } else {
-                return false;
-            };
-            if holds {
-                holds_count += 1;
-            }
-            index += 1;
-        }
+        // Count tokens within age bounds
+        let count = self
+            .tokens
+            .iter()
+            .filter(|&age| *age >= min_age && *age <= max_age)
+            .count();
 
-        if holds_count >= 2 {
-            return holds;
-        }
-        false
+        count >= n
     }
 
     pub fn remove_tokens(&mut self, n: usize) -> Vec<f64> {
-        let mut tokens: Vec<f64> = Vec::new();
-        if self.tokens.len() > n {
-            self.tokens
-                .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let mut tokens = Vec::with_capacity(n);
 
-            for _ in 0..n {
-                tokens.push(self.tokens.pop().unwrap());
-            }
+        // Early return if we don't have enough tokens
+        if self.tokens.len() < n {
+            return tokens;
         }
+
+        // Sort tokens by age (youngest first)
+        self.tokens
+            .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+        // Remove the n oldest tokens (from the end after sorting)
+        tokens.extend(self.tokens.drain(self.tokens.len() - n..));
 
         tokens
     }

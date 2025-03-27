@@ -5,16 +5,21 @@ pub trait SimulationObserver {
 }
 
 pub enum SimulationEvent {
-    TransitionFired {
-        transiton_id: usize,
+    TransitionFiring {
+        transition_id: usize,
         firing_time: f64,
+    },
+    TransitionFired {
+        transition_id: usize,
+        firing_time: f64,
+        tokens_consumed: Vec<f64>,
     },
     TokensChanged {
         place_id: usize,
         new_tokens: Vec<f64>,
     },
-    TimeAdvanded {
+    TimeAdvanced {
         delta: f64,
         new_time: f64,
-    }
+    },
 }

@@ -40,7 +40,7 @@ impl SimulationObserver for TokenAgeObserver {
     }
 
     fn on_completion(&mut self) {
-        todo!()
+        
     }
 
     fn should_stop(&self) -> bool {
