@@ -95,7 +95,7 @@ impl SimulationObserver for TokenCoutObserver {
         {
             if let Some((threshold, comparison)) = self.place_thesholds.get(place_id) {
                 let token_count = new_tokens.len();
-                println!("token_count {}", token_count);
+                //println!("token_count {}", token_count);
                 if self.check_condition(token_count, *threshold, comparison) {
                     self.should_stop = true
                 }

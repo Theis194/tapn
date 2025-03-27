@@ -36,7 +36,7 @@ impl InputArc {
     pub fn fire(&mut self) -> Vec<f64> {
         if self.can_fire() {
             let removed = self.input.borrow_mut().remove_tokens(self.weight);
-            println!("Input arc fired, removed tokens: {:?}", removed);
+            //println!("Input arc fired, removed tokens: {:?}", removed);
             // Input arcs create new 0-age tokens
             vec![0.0; self.weight]
         } else {
@@ -60,7 +60,7 @@ impl TransportArc {
     pub fn fire(&mut self) -> Vec<f64> {
         if self.can_fire() {
             let tokens = self.input.borrow_mut().remove_tokens(self.weight);
-            println!("Transport arc fired, transporting tokens: {:?}", tokens);
+            //println!("Transport arc fired, transporting tokens: {:?}", tokens);
             tokens
         } else {
             vec![]
