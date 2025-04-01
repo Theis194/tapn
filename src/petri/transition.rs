@@ -1,7 +1,7 @@
 use super::{OutputArc, arcs::ArcType};
-use rand::Rng;
 use rand::distr::Uniform;
-
+use rand::{Rng, rngs};
+use rand_distr::{Exp, Normal};
 pub struct Transition {
     pub input_arcs: Vec<ArcType>,
     pub output_arcs: Vec<OutputArc>,
@@ -12,7 +12,13 @@ pub struct Transition {
 }
 
 impl Transition {
-    pub fn new(input_arcs: Vec<ArcType>, output_arcs: Vec<OutputArc>, distribution_function: Distribution, urgent: bool, id: usize) -> Transition {
+    pub fn new(
+        input_arcs: Vec<ArcType>,
+        output_arcs: Vec<OutputArc>,
+        distribution_function: Distribution,
+        urgent: bool,
+        id: usize,
+    ) -> Transition {
         Transition {
             input_arcs,
             output_arcs,
@@ -25,7 +31,7 @@ impl Transition {
 
     pub fn fire(&mut self) -> Vec<f64> {
         let mut consumed_tokens = Vec::new();
-        
+
         // Process input arcs
         for arc in &mut self.input_arcs {
             match arc {
@@ -87,6 +93,8 @@ impl Transition {
 pub enum Distribution {
     Constant(f64),
     Uniform(f64, f64),
+    Normal(f64, f64),
+    Exponential(f64),
 }
 
 impl Distribution {
@@ -97,6 +105,16 @@ impl Distribution {
                 let mut rng = rand::rng();
                 let range = Uniform::new(*min, *max).unwrap();
                 rng.sample(range)
+            }
+            Distribution::Normal(mean, std_dev) => {
+                let mut rng = rand::rng();
+                let normal_range = Normal::new(*mean, *std_dev).unwrap();
+                rng.sample(normal_range)
+            }
+            Distribution::Exponential(rate) => {
+                let mut rng = rand::rng();
+                let exp_range = Exp::new(rate).unwrap();
+                rng.sample(exp_range)
             }
         }
     }
