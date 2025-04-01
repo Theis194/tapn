@@ -1,7 +1,8 @@
 use super::{OutputArc, arcs::ArcType};
+use rand::Rng;
 use rand::distr::Uniform;
-use rand::{Rng, rngs};
-use rand_distr::{Exp, Normal};
+use rand_distr::{Exp, Gamma, Normal, Triangular};
+
 pub struct Transition {
     pub input_arcs: Vec<ArcType>,
     pub output_arcs: Vec<OutputArc>,
@@ -95,6 +96,8 @@ pub enum Distribution {
     Uniform(f64, f64),
     Normal(f64, f64),
     Exponential(f64),
+    Gamma(f64, f64),
+    Trinagular(f64, f64, f64),
 }
 
 impl Distribution {
@@ -113,8 +116,18 @@ impl Distribution {
             }
             Distribution::Exponential(rate) => {
                 let mut rng = rand::rng();
-                let exp_range = Exp::new(rate).unwrap();
+                let exp_range = Exp::new(*rate).unwrap();
                 rng.sample(exp_range)
+            }
+            Distribution::Gamma(shape, scale) => {
+                let mut rng = rand::rng();
+                let gamma = Gamma::new(*shape, *scale).unwrap();
+                rng.sample(gamma)
+            }
+            Distribution::Trinagular(a, b, c) => {
+                let mut rng = rand::rng();
+                let triangular = Triangular::new(*a, *b, *c).unwrap();
+                rng.sample(triangular)
             }
         }
     }
