@@ -41,6 +41,10 @@ impl Transition {
             }
         }
 
+        if self.output_arcs.is_empty() {
+            return consumed_tokens;
+        }
+
         // Process output arcs
         for arc in &mut self.output_arcs {
             match arc {
